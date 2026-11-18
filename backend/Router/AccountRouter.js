@@ -100,7 +100,7 @@ router.put("/credentials", async (req, res) => {
     account.passwordHash = await bcrypt.hash(newPassword, 12);
     await account.save();
 
-    setAuthCookie(res, account);
+    await setAuthCookie(res, account);
 
     return res.json({
       success: true,

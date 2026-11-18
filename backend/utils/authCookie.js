@@ -1,21 +1,27 @@
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const Session = require("../model/Session");
 
 const isProd = process.env.NODE_ENV === "production";
+const sessionDurationMs = 8 * 60 * 60 * 1000;
 
 const cookieOptions = {
   httpOnly: true,
   secure: isProd,
   sameSite: isProd ? "none" : "lax",
   path: "/",
-  maxAge: 8 * 60 * 60 * 1000,
+  maxAge: sessionDurationMs,
 };
 
-function setAuthCookie(res, account) {
+async function setAuthCookie(res, account) {
+  const tokenId = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + sessionDurationMs);
   const token = jwt.sign(
     {
       sub: account._id.toString(),
       username: account.username,
       role: account.role,
+      jti: tokenId,
     },
     process.env.JWT_SECRET,
     {
@@ -23,6 +29,12 @@ function setAuthCookie(res, account) {
       expiresIn: "8h",
     }
   );
+
+  await Session.create({
+    tokenId,
+    accountId: account._id,
+    expiresAt,
+  });
 
   res.cookie("access_token", token, cookieOptions);
 }
