@@ -1,43 +1,43 @@
-// const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 
-// function authenticateToken(req, res, next) {
-//   const token = req.cookies?.access_token;
+function authenticateToken(req, res, next) {
+  const token = req.cookies?.access_token;
 
-//   if (!token) {
-//     return res.status(401).json({
-//       success: false,
-//       message: "Please log in",
-//     });
-//   }
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Please log in",
+    });
+  }
 
-//   let payload;
-//   try {
-//     payload = jwt.verify(token, process.env.JWT_SECRET, {
-//       algorithms: ["HS256"],
-//     });
-//   } catch (error) {
-//     if (error.name !== "JsonWebTokenError" && error.name !== "TokenExpiredError") {
-//       return next(error);
-//     }
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ["HS256"],
+    });
+  } catch (error) {
+    if (error.name !== "JsonWebTokenError" && error.name !== "TokenExpiredError") {
+      return next(error);
+    }
 
-//     res.clearCookie("access_token", {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-//       path: "/",
-//     });
-//     return res.status(401).json({
-//       success: false,
-//       message: "Session expired. Please log in again",
-//     });
-//   }
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    });
+    return res.status(401).json({
+      success: false,
+      message: "Session expired. Please log in again",
+    });
+  }
 
-//   req.user = {
-//     id: payload.sub,
-//     username: payload.username,
-//     role: payload.role,
-//   };
-//   return next();
-// }
+  req.user = {
+    id: payload.sub,
+    username: payload.username,
+    role: payload.role,
+  };
+  return next();
+}
 
-// module.exports = authenticateToken;
+module.exports = authenticateToken;
