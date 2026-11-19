@@ -28,6 +28,7 @@ if (isProd) {
 // ========================================
 
 const allowedOrigins = [
+  "https://pay-nthra24.vercel.app",
   ...(process.env.FRONTEND_ORIGINS || "").split(","),
   process.env.FRONTEND_ORIGIN,
   process.env.CLIENT_URL,

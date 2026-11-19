@@ -32,6 +32,12 @@ function AppRoutes() {
       .catch((error) => {
         if (isActive) {
           setUser(null);
+          if (error.response?.status !== 401) {
+            setAuthError(
+              error.response?.data?.message ||
+                "Unable to verify your session. Please check your connection and try again."
+            );
+          }
         }
       })
       .finally(() => {

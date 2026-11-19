@@ -4,30 +4,12 @@ const { test } = require("node:test");
 process.env.JWT_SECRET = "test-jwt-secret-that-is-at-least-32-characters";
 process.env.NODE_ENV = "test";
 
-const Session = require("../model/Session");
 const { setAuthCookie } = require("../utils/authCookie");
 const authenticateToken = require("../middleware/authenticateToken");
 
-test("auth cookie creation stores a session that is required for authentication", async () => {
-  const originalCreate = Session.create;
-  const originalFindOne = Session.findOne;
-  const records = [];
+test("auth cookie creation and JWT authentication work without a database session", () => {
   let cookie;
-
-  Session.create = async (record) => {
-    records.push(record);
-    return record;
-  };
-  Session.findOne = async (query) =>
-    records.find(
-      (record) =>
-        record.tokenId === query.tokenId &&
-        String(record.accountId) === query.accountId &&
-        record.expiresAt > query.expiresAt.$gt
-    ) || null;
-
-  try {
-    await setAuthCookie(
+  setAuthCookie(
       {
         cookie: (_name, value) => {
           cookie = value;
@@ -40,9 +22,6 @@ test("auth cookie creation stores a session that is required for authentication"
       }
     );
 
-    assert.equal(records.length, 1);
-    assert.equal(records[0].accountId.toString(), "account-123");
-    assert.ok(records[0].expiresAt > new Date());
     assert.ok(cookie);
 
     const req = { cookies: { access_token: cookie } };
@@ -62,25 +41,60 @@ test("auth cookie creation stores a session that is required for authentication"
     };
     let nextCalled = false;
 
-    await authenticateToken(req, res, () => {
+    authenticateToken(req, res, () => {
       nextCalled = true;
     });
 
     assert.equal(nextCalled, true);
     assert.equal(req.user.id, "account-123");
-    assert.equal(req.sessionId, records[0].tokenId);
+});
 
-    records.length = 0;
-    nextCalled = false;
-    await authenticateToken(req, res, () => {
-      nextCalled = true;
-    });
+test("missing and invalid JWT cookies are rejected", () => {
+  const missingRes = {
+    statusCode: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(body) {
+      this.body = body;
+    },
+  };
+  let missingNextCalled = false;
 
-    assert.equal(nextCalled, false);
-    assert.equal(res.statusCode, 401);
-    assert.equal(res.clearedCookie, true);
-  } finally {
-    Session.create = originalCreate;
-    Session.findOne = originalFindOne;
-  }
+  authenticateToken({ cookies: {} }, missingRes, () => {
+    missingNextCalled = true;
+  });
+
+  assert.equal(missingNextCalled, false);
+  assert.equal(missingRes.statusCode, 401);
+  assert.equal(missingRes.body.message, "Please log in");
+
+  const invalidRes = {
+    statusCode: null,
+    clearedCookie: false,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(body) {
+      this.body = body;
+    },
+    clearCookie() {
+      this.clearedCookie = true;
+    },
+  };
+  let invalidNextCalled = false;
+
+  authenticateToken(
+    { cookies: { access_token: "invalid.jwt.token" } },
+    invalidRes,
+    () => {
+      invalidNextCalled = true;
+    }
+  );
+
+  assert.equal(invalidNextCalled, false);
+  assert.equal(invalidRes.statusCode, 401);
+  assert.equal(invalidRes.clearedCookie, true);
 });
