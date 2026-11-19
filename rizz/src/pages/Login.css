@@ -203,6 +203,46 @@ img {
   cursor: not-allowed;
 }
 
+.login-password-field {
+  position: relative;
+}
+
+.login-card .login-password-field input {
+  padding-right: 72px;
+}
+
+.login-card .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 6px;
+  color: #24569a;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateY(-50%);
+}
+
+.login-card .password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.login-card .password-toggle:hover {
+  color: #173d78;
+  background: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+}
 
 
 .login-card .login-error {
