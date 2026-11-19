@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const authenticateToken = require("../middleware/authenticateToken");
+const authenticateSession = require("../middleware/authenticateSession");
 
 const {
   createClub,
@@ -9,7 +9,7 @@ const {
   updateClub,
 } = require("../controllers/AddClubController");
 
-router.use(authenticateToken);
+router.use(authenticateSession);
 
 router.post("/", createClub);
 router.get("/", getAllClubs);

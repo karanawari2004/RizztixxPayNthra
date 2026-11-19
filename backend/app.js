@@ -199,16 +199,6 @@ async function startServer() {
       throw new Error("MONGO_URI is missing from .env");
     }
 
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is missing from .env");
-    }
-
-    if (process.env.JWT_SECRET.length < 32) {
-      throw new Error(
-        "JWT_SECRET must be at least 32 characters long"
-      );
-    }
-
     if (allowedOrigins.length === 0) {
       throw new Error(
         "At least one frontend origin must be configured"

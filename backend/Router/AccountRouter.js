@@ -1,12 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const Account = require("../model/Account");
-const authenticateToken = require("../middleware/authenticateToken");
+const authenticateSession = require("../middleware/authenticateSession");
 const { setAuthCookie } = require("../utils/authCookie");
 
 const router = express.Router();
 
-router.use(authenticateToken);
+router.use(authenticateSession);
 
 function normalizeUsername(username) {
   return username.trim().toLowerCase();

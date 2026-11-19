@@ -1,4 +1,6 @@
-const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const Session = require("../model/Session");
+
 const isProd = process.env.NODE_ENV === "production";
 const sessionDurationMs = 8 * 60 * 60 * 1000;
 
@@ -10,30 +12,33 @@ const cookieOptions = {
   maxAge: sessionDurationMs,
 };
 
-function setAuthCookie(res, account) {
-  const token = jwt.sign(
-    {
-      sub: account._id.toString(),
-      username: account.username,
-      role: account.role,
-    },
-    process.env.JWT_SECRET,
-    {
-      algorithm: "HS256",
-      expiresIn: "8h",
-    }
-  );
+function hashSessionId(sessionId) {
+  return crypto.createHash("sha256").update(sessionId).digest("hex");
+}
 
-  res.cookie("access_token", token, cookieOptions);
+async function setAuthCookie(res, account) {
+  const sessionId = crypto.randomBytes(32).toString("hex");
+
+  await Session.create({
+    tokenId: hashSessionId(sessionId),
+    accountId: account._id,
+    expiresAt: new Date(Date.now() + sessionDurationMs),
+  });
+
+  clearAuthCookie(res);
+  res.cookie("session_id", sessionId, cookieOptions);
 }
 
 function clearAuthCookie(res) {
-  res.clearCookie("access_token", {
+  const options = {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
     path: "/",
-  });
+  };
+
+  res.clearCookie("session_id", options);
+  res.clearCookie("access_token", options);
 }
 
-module.exports = { setAuthCookie, clearAuthCookie };
+module.exports = { setAuthCookie, clearAuthCookie, hashSessionId };

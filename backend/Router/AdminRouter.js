@@ -1,9 +1,9 @@
 
 const express = require("express");
-const authenticateToken = require("../middleware/authenticateToken");
+const authenticateSession = require("../middleware/authenticateSession");
 
 const router = express.Router();
-router.use(authenticateToken);
+router.use(authenticateSession);
 
 const {
 

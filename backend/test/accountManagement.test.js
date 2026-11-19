@@ -4,7 +4,6 @@
 // const express = require("express");
 // const cookieParser = require("cookie-parser");
 
-// process.env.JWT_SECRET = "test-jwt-secret-that-is-at-least-32-characters";
 // process.env.NODE_ENV = "test";
 // process.env.ADMIN_USERNAME = "initial";
 // process.env.ADMIN_PASSWORD = "initial-password";

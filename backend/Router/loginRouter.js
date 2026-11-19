@@ -1,7 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const Account = require("../model/Account");
-const authenticateToken = require("../middleware/authenticateToken");
+const Session = require("../model/Session");
+const authenticateSession = require("../middleware/authenticateSession");
 const { setAuthCookie, clearAuthCookie } = require("../utils/authCookie");
 
 const router = express.Router();
@@ -49,14 +50,19 @@ router.post("/login", async (req, res) => {
 });
 
 
-router.get("/session", authenticateToken, (req, res) => {
+router.get("/session", authenticateSession, (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
 
-router.post("/logout", (req, res) => {
-  clearAuthCookie(res);
-  return res.json({ success: true, message: "Logged out successfully" });
+router.post("/logout", authenticateSession, async (req, res, next) => {
+  try {
+    await Session.deleteOne({ tokenId: req.sessionTokenId });
+    clearAuthCookie(res);
+    return res.json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 module.exports = router;
